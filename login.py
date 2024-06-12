@@ -83,11 +83,7 @@
                     # Log user activity
                     log_user_activity(username, user_role, actual_cols)
 
-                    # Create a search input for a specific player
-                    search_player = st.text_input("Search for a specific player")
-                    if st.button("Submit Search"):
-                        if search_player:
-                            nba = nba[nba['Player'].str.contains(search_player, case=False, na=False)]
+                    
 
                     st.dataframe(nba)
 
