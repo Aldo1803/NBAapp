@@ -7,7 +7,7 @@ from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 def connect_to_mongo():
     client = MongoClient("mongodb+srv://aldoparada:AldoParada0805@cluster0.tstzpba.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
@@ -21,8 +21,7 @@ def fetch_data(db, collection_name, columns):
 
 def fetch_user(db, username, password):
     collection = db["users"]
-    user = collection.find_one({"username": username, "password": password})
-    return user
+    return collection.find_one({"username": username, "password": password})
 
 def fetch_roles(db):
     collection = db["roles"]
@@ -142,35 +141,38 @@ def home_section():
             st.write("## Scikit-Learn Model")
 
             # Prepare the data
-            X = nba[['AST', 'TRB']]
+            X = nba[['Player', 'AST', 'TRB']]
             y = nba['PTS']
 
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
             # Train the model
             model = LinearRegression()
-            model.fit(X_train, y_train)
+            model.fit(X_train[['AST', 'TRB']], y_train)
 
             # Make predictions
-            y_pred = model.predict(X_test)
+            y_pred = model.predict(X_test[['AST', 'TRB']])
 
             # Calculate and display the performance metrics
             mse = mean_squared_error(y_test, y_pred)
             st.write(f"Mean Squared Error: {mse}")
 
-            # Plot actual vs predicted points using Streamlit's plotting functions
-            results = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
-            st.write("### Actual vs Predicted Points")
-            st.line_chart(results)
+            # Create a DataFrame with actual, predicted values and player names
+            results = pd.DataFrame({'Player': X_test['Player'], 'Actual': y_test, 'Predicted': y_pred})
 
-            # Show the regression line
-            fig, ax = plt.subplots()
-            ax.scatter(X_test['AST'], y_test, color='blue', label='Actual Points')
-            ax.scatter(X_test['AST'], y_pred, color='red', label='Predicted Points')
-            ax.set_xlabel('Assists')
-            ax.set_ylabel('Points')
-            ax.legend()
-            st.pyplot(fig)
+            # Display the DataFrame with actual and predicted points
+            st.write("### Actual and Predicted Points")
+            st.dataframe(results)
+
+            # Plot actual vs predicted points using Plotly with player names
+            st.write("### Actual vs Predicted Points")
+            fig = px.scatter(results, x='Actual', y='Predicted', hover_data=['Player'], labels={'Actual': 'Actual Points', 'Predicted': 'Predicted Points'})
+            st.plotly_chart(fig)
+
+            # Show the regression line with player names
+            fig = px.scatter(X_test, x='AST', y=y_test, hover_data=['Player'], labels={'x': 'Assists', 'y': 'Points'}, title='Assists vs Points')
+            fig.add_scatter(x=X_test['AST'], y=y_pred, mode='markers', name='Predicted Points', hovertext=results['Player'])
+            st.plotly_chart(fig)
     else:
         st.error("Role not found.")
 
