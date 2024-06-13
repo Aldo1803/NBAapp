@@ -138,7 +138,7 @@ def home_section():
 
         # Train a simple scikit-learn model
         if 'PTS' in actual_cols and 'AST' in actual_cols and 'TRB' in actual_cols:
-            st.write("## Scikit-Learn Model")
+            st.write("## NBA Model")
 
             # Prepare the data
             X = nba[['Player', 'AST', 'TRB']]
@@ -156,6 +156,9 @@ def home_section():
             # Calculate and display the performance metrics
             mse = mean_squared_error(y_test, y_pred)
             st.write(f"Mean Squared Error: {mse}")
+
+            model.score(X_test[['AST', 'TRB']], y_test)
+            st.write(f"Model Score: {model.score(X_test[['AST', 'TRB']], y_test)}")
 
             # Create a DataFrame with actual, predicted values and player names
             results = pd.DataFrame({'Player': X_test['Player'], 'Actual': y_test, 'Predicted': y_pred})
